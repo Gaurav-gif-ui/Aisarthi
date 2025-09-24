@@ -1,0 +1,919 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusAI - Powered by Gemini</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #7c3aed;
+            --accent-color: #ec4899;
+            --dark-color: #1f2937;
+            --darker-color: #111827;
+            --light-color: #f9fafb;
+            --gray-light: #e5e7eb;
+            --gray-medium: #9ca3af;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --user-bubble: #2563eb;
+            --bot-bubble: #f3f4f6;
+            --text-dark: #1f2937;
+            --text-light: #f9fafb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #f9fafb;
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Main Chat Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+        }
+
+        .chat-header {
+            padding: 16px 24px;
+            background-color: white;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-title i {
+            color: var(--primary-color);
+        }
+
+        .chat-header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .header-btn {
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: var(--gray-medium);
+            transition: all 0.3s ease;
+        }
+
+        .header-btn:hover {
+            background-color: var(--gray-light);
+            color: var(--dark-color);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background-color: var(--light-color);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 16px 20px;
+            border-radius: 16px;
+            line-height: 1.5;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+            word-wrap: break-word;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--user-bubble);
+            color: var(--text-light);
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: white;
+            color: var(--text-dark);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .message-sender {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .message-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .message:hover .message-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--gray-medium);
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: var(--dark-color);
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            padding: 16px 20px;
+            border-radius: 16px;
+            background-color: white;
+            align-self: flex-start;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--gray-medium);
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+
+        .chat-input-container {
+            padding: 20px 24px;
+            background-color: white;
+            border-top: 1px solid var(--gray-light);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--gray-light);
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            resize: none;
+            max-height: 120px;
+            min-height: 48px;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .send-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .send-btn:disabled {
+            background-color: var(--gray-light);
+            cursor: not-allowed;
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .input-action-btn {
+            background: none;
+            border: none;
+            color: var(--gray-medium);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .input-action-btn:hover {
+            background-color: var(--gray-light);
+            color: var(--dark-color);
+        }
+
+        .suggestions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .suggestion {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            border: 1px solid var(--gray-light);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .suggestion:hover {
+            background-color: var(--gray-light);
+        }
+
+        /* Dark mode styles */
+        .dark-mode {
+            --light-color: #1f2937;
+            --gray-light: #374151;
+            background-color: #111827;
+        }
+
+        .dark-mode .chat-header,
+        .dark-mode .chat-input-container {
+            background-color: var(--dark-color);
+            border-color: #374151;
+        }
+
+        .dark-mode .chat-messages {
+            background-color: #111827;
+        }
+
+        .dark-mode .bot-message {
+            background-color: var(--dark-color);
+            color: var(--text-light);
+        }
+
+        .dark-mode .chat-input {
+            background-color: var(--dark-color);
+            border-color: #374151;
+            color: var(--text-light);
+        }
+
+        .dark-mode .suggestion {
+            background-color: var(--dark-color);
+            color: var(--text-light);
+            border-color: #374151;
+        }
+
+        /* Welcome screen */
+        .welcome-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .welcome-icon {
+            font-size: 4rem;
+            color: var(--primary-color);
+            margin-bottom: 24px;
+        }
+
+        .welcome-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.1rem;
+            color: var(--gray-medium);
+            max-width: 600px;
+            margin-bottom: 40px;
+        }
+
+        .capabilities {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .capability {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .capability-icon {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+        }
+
+        .capability-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .capability-desc {
+            font-size: 0.9rem;
+            color: var(--gray-medium);
+        }
+
+        .dark-mode .capability {
+            background-color: var(--dark-color);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .message {
+                max-width: 90%;
+            }
+            
+            .chat-header {
+                padding: 12px 16px;
+            }
+            
+            .chat-messages {
+                padding: 16px;
+            }
+            
+            .chat-input-container {
+                padding: 16px;
+            }
+            
+            .capabilities {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Error message */
+        .error-message {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        .dark-mode .error-message {
+            background-color: #7f1d1d;
+            border-color: #dc2626;
+            color: #fca5a5;
+        }
+
+        /* API Status */
+        .api-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--error-color);
+        }
+
+        .status-dot.connected {
+            background-color: var(--success-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="chat-header">
+            <div class="chat-title">
+                <i class="fas fa-robot"></i> NexusAI <span style="font-size: 0.8rem; color: var(--gray-medium);">Powered by Gemini</span>
+            </div>
+            <div class="chat-header-actions">
+                <button class="header-btn" id="darkModeBtn" title="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="header-btn" id="clearChatBtn" title="Clear Chat">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <!-- Welcome Screen -->
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h1 class="welcome-title">Hello! I'm NexusAI</h1>
+                <p class="welcome-subtitle">Powered by Google's Gemini AI. I can help you with writing, coding, research, and much more!</p>
+                
+                <div class="api-status">
+                    <div class="status-dot connected" id="statusDot"></div>
+                    <span id="statusText">Gemini AI Connected</span>
+                </div>
+                
+                <div class="capabilities">
+                    <div class="capability">
+                        <div class="capability-icon">
+                            <i class="fas fa-pencil-alt"></i>
+                        </div>
+                        <h3 class="capability-title">Content Creation</h3>
+                        <p class="capability-desc">Generate articles, emails, stories, and creative content</p>
+                    </div>
+                    <div class="capability">
+                        <div class="capability-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h3 class="capability-title">Programming Help</h3>
+                        <p class="capability-desc">Get assistance with coding, debugging, and explanations</p>
+                    </div>
+                    <div class="capability">
+                        <div class="capability-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h3 class="capability-title">Brainstorming</h3>
+                        <p class="capability-desc">Generate ideas, plans, and solutions for your projects</p>
+                    </div>
+                    <div class="capability">
+                        <div class="capability-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h3 class="capability-title">Research & Analysis</h3>
+                        <p class="capability-desc">Get information and insights on various topics</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Messages will be inserted here -->
+        </div>
+
+        <div class="chat-input-container">
+            <div class="input-actions">
+                <button class="input-action-btn" id="micBtn" title="Voice Input">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="input-action-btn" id="attachBtn" title="Attach File">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <input type="file" id="fileInput" class="file-input" accept="image/*, .pdf, .doc, .docx, .txt" style="display: none;">
+            </div>
+            
+            <div class="input-wrapper">
+                <textarea class="chat-input" id="chatInput" placeholder="Ask me anything..." rows="1"></textarea>
+                <button class="send-btn" id="sendBtn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            
+            <div class="suggestions" id="suggestions">
+                <div class="suggestion">What can you help me with?</div>
+                <div class="suggestion">Write a professional email</div>
+                <div class="suggestion">Explain quantum computing</div>
+                <div class="suggestion">Help me with coding</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const chatMessages = document.getElementById('chatMessages');
+            const chatInput = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const darkModeBtn = document.getElementById('darkModeBtn');
+            const clearChatBtn = document.getElementById('clearChatBtn');
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+
+            // App State
+            let isDarkMode = localStorage.getItem('darkMode') === 'true';
+            let isTyping = false;
+            let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+
+            // 🔥 YAHAN PAR TUMHARI GEMINI API KEY DALDO 🔥
+            const GEMINI_API_KEY =AIzaSyD8g525OD844raj25LbEmleQf5pajKAQpQ ; // Yahan apni API key daalo
+            const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+
+            // Initialize the app
+            function init() {
+                // Apply dark mode if enabled
+                if (isDarkMode) {
+                    document.body.classList.add('dark-mode');
+                    darkModeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+                }
+                
+                // Load chat history if exists
+                if (chatHistory.length > 0) {
+                    loadChatHistory();
+                    welcomeScreen.style.display = 'none';
+                }
+                
+                // Auto-resize textarea
+                chatInput.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
+                });
+
+                // Enable send button when typing
+                chatInput.addEventListener('input', function() {
+                    sendBtn.disabled = this.value.trim() === '';
+                });
+
+                // Test API connection
+                testGeminiConnection();
+            }
+
+            // 🔥 GEMINI API CONNECTION TEST 🔥
+            async function testGeminiConnection() {
+                try {
+                    const response = await fetch(GEMINI_API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: "Hello"
+                                }]
+                            }]
+                        })
+                    });
+
+                    if (response.ok) {
+                        statusDot.classList.add('connected');
+                        statusText.textContent = 'Gemini AI Connected';
+                    } else {
+                        throw new Error('API connection failed');
+                    }
+                } catch (error) {
+                    statusDot.classList.remove('connected');
+                    statusText.textContent = 'Gemini AI Disconnected';
+                    console.error('Gemini API test failed:', error);
+                }
+            }
+
+            // 🔥 GEMINI API CALL FUNCTION 🔥
+            async function callGeminiAPI(userMessage) {
+                try {
+                    const response = await fetch(GEMINI_API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: userMessage
+                                }]
+                            }],
+                            generationConfig: {
+                                temperature: 0.7,
+                                topK: 40,
+                                topP: 0.95,
+                                maxOutputTokens: 1024,
+                            }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error?.message || `API error: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    // Gemini API response format
+                    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                        return data.candidates[0].content.parts[0].text;
+                    } else {
+                        throw new Error('Invalid response format from Gemini API');
+                    }
+                } catch (error) {
+                    console.error('Gemini API Error:', error);
+                    return generateFallbackResponse(userMessage, error.message);
+                }
+            }
+
+            // Fallback responses agar API fail ho
+            function generateFallbackResponse(userMessage, errorMsg = '') {
+                const lowerMessage = userMessage.toLowerCase();
+                
+                if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
+                    return "Hello! I'm NexusAI powered by Gemini. I'm here to help you!";
+                } else if (lowerMessage.includes('help')) {
+                    return "I can help you with various tasks like writing, coding, research, and creative projects. What specific assistance do you need?";
+                } else if (lowerMessage.includes('thank')) {
+                    return "You're welcome! Is there anything else I can help you with?";
+                } else if (lowerMessage.includes('name')) {
+                    return "I'm NexusAI, powered by Google's Gemini AI!";
+                } else if (lowerMessage.includes('gemini')) {
+                    return "I'm powered by Google's Gemini AI, which provides me with advanced language understanding and generation capabilities.";
+                }
+                
+                return `I understand you're asking about: "${userMessage}". I'm currently experiencing high demand. Please try again in a moment.`;
+            }
+
+            // Load chat history
+            function loadChatHistory() {
+                chatHistory.forEach(message => {
+                    if (message.sender === 'user') {
+                        addUserMessage(message.text, message.timestamp, true);
+                    } else {
+                        addBotMessage(message.text, message.timestamp, true);
+                    }
+                });
+            }
+
+            // Add a user message to the chat
+            function addUserMessage(text, timestamp = null, fromHistory = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message user-message';
+                
+                const time = timestamp ? new Date(timestamp) : new Date();
+                const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <span class="message-sender">You</span>
+                        <span class="message-time">${timeString}</span>
+                    </div>
+                    ${text}
+                    <div class="message-actions">
+                        <button class="action-btn" title="Copy"><i class="fas fa-copy"></i></button>
+                    </div>
+                `;
+                
+                chatMessages.appendChild(messageDiv);
+                welcomeScreen.style.display = 'none';
+                
+                // Add copy functionality
+                const copyBtn = messageDiv.querySelector('.action-btn');
+                copyBtn.addEventListener('click', () => {
+                    navigator.clipboard.writeText(text);
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                    }, 2000);
+                });
+                
+                // Scroll to bottom if not loading from history
+                if (!fromHistory) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    
+                    // Add to chat history
+                    chatHistory.push({
+                        sender: 'user',
+                        text: text,
+                        timestamp: time.getTime()
+                    });
+                    saveChatHistory();
+                }
+            }
+
+            // Add a bot message to the chat
+            async function addBotMessage(text, timestamp = null, fromHistory = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message bot-message';
+                
+                const time = timestamp ? new Date(timestamp) : new Date();
+                const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <span class="message-sender">NexusAI</span>
+                        <span class="message-time">${timeString}</span>
+                    </div>
+                    <div class="message-content">Processing your request...</div>
+                    <div class="message-actions">
+                        <button class="action-btn" title="Copy"><i class="fas fa-copy"></i></button>
+                        <button class="action-btn" title="Like"><i class="fas fa-thumbs-up"></i></button>
+                    </div>
+                `;
+                
+                // If not from history, show typing indicator and call API
+                if (!fromHistory) {
+                    showTypingIndicator();
+                    
+                    try {
+                        // 🔥 YAHAN PAR GEMINI API CALL HOTA HAI 🔥
+                        const geminiResponse = await callGeminiAPI(text);
+                        
+                        removeTypingIndicator();
+                        messageDiv.querySelector('.message-content').textContent = geminiResponse;
+                        chatMessages.appendChild(messageDiv);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        
+                        // Add to chat history
+                        chatHistory.push({
+                            sender: 'bot',
+                            text: geminiResponse,
+                            timestamp: time.getTime()
+                        });
+                        saveChatHistory();
+                    } catch (error) {
+                        removeTypingIndicator();
+                        messageDiv.querySelector('.message-content').innerHTML = 
+                            `<div class="error-message">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                Gemini AI service temporarily unavailable. Please try again.
+                                ${error.message ? `<br><small>Error: ${error.message}</small>` : ''}
+                            </div>`;
+                        chatMessages.appendChild(messageDiv);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                } else {
+                    messageDiv.querySelector('.message-content').textContent = text;
+                    chatMessages.appendChild(messageDiv);
+                }
+                
+                // Add copy functionality
+                const copyBtn = messageDiv.querySelector('.action-btn');
+                copyBtn.addEventListener('click', () => {
+                    const messageContent = messageDiv.querySelector('.message-content').textContent;
+                    navigator.clipboard.writeText(messageContent);
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                    }, 2000);
+                });
+            }
+
+            // Show typing indicator
+            function showTypingIndicator() {
+                if (isTyping) return;
+                
+                isTyping = true;
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'typing-indicator';
+                typingDiv.id = 'typingIndicator';
+                typingDiv.innerHTML = `
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                `;
+                chatMessages.appendChild(typingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Remove typing indicator
+            function removeTypingIndicator() {
+                isTyping = false;
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+
+            // Save chat history to localStorage
+            function saveChatHistory() {
+                localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+            }
+
+            // Clear chat history
+            function clearChatHistory() {
+                if (confirm('Are you sure you want to clear the chat history?')) {
+                    chatHistory = [];
+                    saveChatHistory();
+                    chatMessages.innerHTML = '';
+                    chatMessages.appendChild(welcomeScreen);
+                    welcomeScreen.style.display = 'flex';
+                }
+            }
+
+            // Process user input
+            function processUserInput() {
+                const message = chatInput.value.trim();
+                if (message === '') return;
+                
+                addUserMessage(message);
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+                sendBtn.disabled = true;
+            }
+
+            // Event Listeners
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    processUserInput();
+                }
+            });
+
+            sendBtn.addEventListener('click', processUserInput);
+
+            darkModeBtn.addEventListener('click', function() {
+                isDarkMode = !isDarkMode;
+                document.body.classList.toggle('dark-mode');
+                localStorage.setItem('darkMode', isDarkMode);
+                
+                if (isDarkMode) {
+                    this.innerHTML = '<i class="fas fa-sun"></i>';
+                } else {
+                    this.innerHTML = '<i class="fas fa-moon"></i>';
+                }
+            });
+
+            clearChatBtn.addEventListener('click', clearChatHistory);
+
+            // Suggestion buttons
+            document.querySelectorAll('.suggestion').forEach(button => {
+                button.addEventListener('click', function() {
+                    chatInput.value = this.textContent;
+                    chatInput.focus();
+                    sendBtn.disabled = false;
+                });
+            });
+
+            // Initialize the app
+            init();
+        });
+    </script>
+</body>
+</html>
